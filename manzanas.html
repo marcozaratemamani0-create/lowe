@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Atrapa las Manzanas! 🍎</title>
+    <style>
+        body {
+            background-color: #1a0d2e;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            background-color: #0d0614;
+            border: 4px solid #8a2be2;
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+
+        button {
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:active {
+            background-color: #4b0082;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍎 ¡Atrapa y come las Manzanas! 🍎</h1>
+    <p>Puntos: <span id="puntos">0</span> | Vidas: <span id="vidas">3</span></p>
+    
+    <canvas id="lienzo" width="400" height="450"></canvas>
+    
+    <div class="botones">
+        <button id="btn-izq">◀ Mover Izquierda</button>
+        <button id="btn-der">Mover Derecha ▶</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("lienzo");
+        const ctx = canvas.getContext("2d");
+
+        let puntos = 10;
+        let vidas = 10;
+        let juegoActivo = true;
+
+        // Configuración de la canasta
+        let canasta = { x: 160, y: 410, ancho: 80, alto: 20, velocidad: 15 };
+
+        // Configuración de la manzana
+        let manzana = { x: Math.random() * 360, y: 0, radio: 12, velocidad: 4 };
+
+        function actualizar() {
+            if (!juegoActivo) return;
+
+            // Hacer que la manzana caiga y rebote
+            manzana.y += manzana.velocidad;
+
+            // Si la canasta atrapa la manzana
+            if (manzana.y + manzana.radio >= canasta.y &&
+                manzana.x >= canasta.x &&
+                manzana.x <= canasta.x + canasta.ancho) {
+                puntos += 1;
+                document.getElementById("puntos").innerText = puntos;
+                reiniciarManzana();
+                // Aumentar velocidad poco a poco para hacerlo difícil
+                manzana.velocidad += 0.3;
+            }
+
+            // Si la manzana toca el suelo (no la atrapaste)
+            if (manzana.y > canvas.height) {
+                vidas -= 1;
+                document.getElementById("vidas").innerText = vidas;
+                reiniciarManzana();
+
+                if (vidas <= 0) {
+                    juegoActivo = false;
+                    alert("¡Fin del juego! Conseguiste " + puntos + " puntos. Presiona Aceptar para reiniciar.");
+                    document.location.reload();
+                }
+            }
+        }
+
+        function reiniciarManzana() {
+            manzana.x = Math.random() * (canvas.width - 24) + 12;
+            manzana.y = 0;
+        }
+
+        function dibujar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar la canasta (Rectángulo azul)
+            ctx.fillStyle = "#00ffcc";
+            ctx.fillRect(canasta.x, canasta.y, canasta.ancho, canasta.alto);
+
+            // Dibujar la manzana (Círculo rojo)
+            ctx.fillStyle = "#ff3333";
+            ctx.beginPath();
+            ctx.arc(manzana.x, manzana.y, manzana.radio, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function bucle() {
+            actualizar();
+            dibujar();
+            requestAnimationFrame(bucle);
+        }
+
+        // Controles para Computadora (Teclado)
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" && canasta.x > 0) canasta.x -= canasta.velocidad;
+            if (e.key === "ArrowRight" && canasta.x < canvas.width - canasta.ancho) canasta.x += canasta.velocidad;
+        });
+
+        // Controles para Celular (Botones en pantalla)
+        document.getElementById("btn-izq").addEventListener("click", () => {
+            if (canasta.x > 0) canasta.x -= canasta.velocidad * 1.5;
+        });
+        document.getElementById("btn-der").addEventListener("click", () => {
+            if (canasta.x < canvas.width - canasta.ancho) canasta.x += canasta.velocidad * 1.5;
+        });
+
+        bucle();
+    </script>
+</body>
+</html>
